@@ -29,7 +29,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
     if (!mxGetField(prhs[0],0,"data")) { mexErrMsgTxt("data missing 'data' field\n"); }
     int8_t *alldata = (int8_t *) mxGetData(mxGetField(prhs[0],0,"data"));
     int bigT = mxGetN(mxGetField(prhs[0],0,"data")); // total length of the data
-    int num_subparts = mxGetM(mxGetField(prhs[0],0,"data")); // number of sub-parts
+    int num_subparts = mxGetM(mxGetField(prhs[0],0,"data")); // number of sub-parts (questions available?)
 
     if (!mxGetField(prhs[0],0,"resources")) { mexErrMsgTxt("data missing 'resources' field\n"); }
     int16_t *allresources = (int16_t *) mxGetData(mxGetField(prhs[0],0,"resources"));
@@ -49,7 +49,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
     if (!mxGetField(prhs[1],0,"learns")) { mexErrMsgTxt("model missing 'learns' field\n"); }
     double *learns = mxGetPr(mxGetField(prhs[1],0,"learns"));
     int num_resources = max(mxGetM(mxGetField(prhs[1],0,"learns")),
-            mxGetN(mxGetField(prhs[1],0,"learns")));
+            mxGetN(mxGetField(prhs[1],0,"learns"))); // Cathleen thinks this is # of questions
 
     if (!mxGetField(prhs[1],0,"forgets")) { mexErrMsgTxt("model missing 'forgets' field\n"); }
     double *forgets = mxGetPr(mxGetField(prhs[1],0,"forgets"));
@@ -122,7 +122,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
     Map<ArrayXXd,Aligned> all_trans_softcounts(mxGetPr(prhs[2]),2,2*num_resources);
     all_trans_softcounts.setZero();
     Map<Array2Xd,Aligned> all_emission_softcounts(mxGetPr(prhs[3]),2,2*num_subparts);
-    all_emission_softcounts.setZero();
+    all_emission_softcounts.setZero(); // Is this the final step and initial step??
     Map<Array2d,Aligned> all_initial_softcounts(mxGetPr(prhs[4]));
     all_initial_softcounts.setZero();
 
@@ -134,7 +134,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
     double *total_loglike = &s_total_loglike;
     switch (nlhs)
     {
-        case 4:
+        case 4: // what are these different states?
             plhs[3] = mxCreateDoubleMatrix(2,bigT,mxREAL);
             new (&likelihoods_out) Map<Array2Xd,Aligned>(mxGetPr(plhs[3]),2,bigT);
         case 3:

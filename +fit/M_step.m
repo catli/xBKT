@@ -6,6 +6,7 @@ emission_softcounts(:,sum(emission_softcounts,2) == 0) = 1;
 assert(size(trans_softcounts,1) == 2)
 assert(size(trans_softcounts,2) == 2)
 
+% bsxfun - applies element-wise binary operations to two arrays
 model.As = bsxfun(@rdivide,trans_softcounts,sum(trans_softcounts,1));
 model.learns = model.As(2,1,:);
 model.forgets = model.As(1,2,:);

@@ -1,13 +1,15 @@
 MEXFUNCS=+fit/E_step +fit/sample_states +fit/predict_onestep_states +generate/synthetic_data_helper
-CXX=g++-4.9
+CXX=g++-5
+#CXX=g++-4.9
 UNAME=$(shell uname)
 
 # these defaults are set for the machines we've been working on
 # they may need to change
 
 ifndef MATLABPATH
+	#ifeq ($(UNAME),Bash)
 	ifeq ($(UNAME),Darwin)
-		MATLABPATH=/Applications/MATLAB_R2013a.app
+		MATLABPATH=/Applications/MATLAB_R2015b.app
 	endif
 	ifeq ($(UNAME),Linux)
 		MATLABPATH=/usr/local/MATLAB/R2014a
@@ -15,9 +17,11 @@ ifndef MATLABPATH
 endif
 
 ifndef EIGENPATH
+	#ifeq ($(UNAME),Bash)
 	ifeq ($(UNAME),Darwin)
 		EIGENPATH=/usr/local/include
-	endif
+	endif	
+	#endif
 	ifeq ($(UNAME),Linux)
 		EIGENPATH=/usr/include/eigen3
 	endif
