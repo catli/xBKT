@@ -1,45 +1,10 @@
 Created by Zachary A. Pardos (zp@berkeley.edu) and Matthew J. Johnson (mattjj@csail.mit.edu)
 Computational Approaches to Human Learning Research (CAHL) Lab @ UC Berkeley
-# Running #
 
-You can work in the repository root directory or add it to your path with
-`addpath` (no need to use `genpath`, since everything is organized with
-namespaces).
+This is intended as a quick overview of steps to [install and setup ](#install)and to [run](#run) `xBKT` locally. 
 
-See the file `+test/hand_specified_model.m` for a fairly complete example,
-which you can run with `test.hand_specified_model`.
-
-If you get an error about missing the function `E_step`, the compiling step
-(see "Installation and setup") didn't work.
-
-Here's a simplified version:
-
-```matlab
-%% generate synthetic model and data
-% the model will have 4 question subparts
-num_subparts = 4;
-truemodel = generate.random_model(num_subparts);
-
-% generate 3 observation sequences with varying lengths
-data = generate.synthetic_data(truemodel,[200,150,500]);
-
-%% fit models, starting with random initializations
-best_likelihood = -inf;
-for i=1:25
-    [fitmodel, log_likelihoods] = fit.EM_fit(generate.random_model(num_subparts),data);
-    if (log_likelihoods(end) > best_likelihood)
-        best_likelihood = log_likelihoods(end);
-        best_model = fitmodel;
-    end
-end
-
-%% compare the fit model to the true model
-disp('these two should look similar');
-truemodel.A
-best_model.A
-```
-
-# Installation and setup #
+<a name="install"/>
+# Installation and setup 
 
 ## Cloning the repository ##
 
@@ -113,27 +78,95 @@ These steps would allow you to set up gcc49. Run the following commands
     brew install libmpc
 ```
 
-## Preparing Data for xBKT ##
-xBKT models student mastery of a skills as they work through a series of learning resources and checks for understanding. At each checkpoint, students may be given a resource (learning practice activity) and/or question(s) to check for understanding. The model finds the probability of learning, forgetting, slipping and guessing that maximizes the likelihood of observed student response to questions. 
+<a name="run"/>
+# Preparing Data and Running Model #
+## Input and Output Data ##
+`xBKT` models student mastery of a skills as they progress through series of learning resources and checks for understanding. At each checkpoint, students may be given a resource (learning practice activity) and/or question(s) to check for understanding. The model finds the probability of learning, forgetting, slipping and guessing that maximizes the likelihood of observed student response to questions. 
 
 To run the xBKT model, define the following variables:
-* `num_subparts`: The number of unique questions used to check understanding. Each sub-part has a unique emissions matrix.
-* `num_resources`: The number of resources shown to students
-* `num_fit_initialization`: The number of iterations in the EM step
-
-Next, create a `Data` object, containing the input for the model. `Data` contains the following attributes: 
-* `data`: a matrix containing sequential checkpoints for all students, with their responses. Each row represents a different subpart, and each column a checkpoint for a student. There are three potential values: {0 = no response or no question asked, 1 = wrong response, 2 = correct response}. If at a checkpoint, a resource was given but no question asked, the column would have all `0` values. For example to set up data for two students with two and three checkpoints respectively and 5 subparts, the matrix would be as follows:
-
-    | 0 | 0 | 0 | 0 | 2 |
-
-    | 0  1  0  0  0 |
-    | 0  0  0  0  0 |
-    | 0  0  0  0  0 |
-    | 0  0  2  0  0 |   
-
-In this example, each student start with a resource but no responses. In subsequent responses, both student eventually answered questions correctly. 
-* `starts`: defines each student's starting position on the `data` matrix. 
-* `lengths`: defines the number of check point for each student. 
+* `num_subparts`: The number of unique questions used to check understanding. Each subpart has a unique emissions matrix.
+* `num_resources`: The number of unique learning resources available to students.
+* `num_fit_initialization`: The number of iterations in the EM step.
 
 
+Next, create an input object `Data`, containing the following attributes: 
+* `data`: a matrix containing sequential checkpoints for all students, with their responses. Each row represents a different subpart, and each column a checkpoint for a student. There are three potential values: {0 = no response or no question asked, 1 = wrong response, 2 = correct response}. If at a checkpoint, a resource was given but no question asked, the column would have all `0` values. For example to set up data with 5 subparts and two students with two and three checkpoints respectively, the matrix would as follows:
 
+        | 0  0  0  0  2 |
+        | 0  1  0  0  0 |
+        | 0  0  0  0  0 |
+        | 0  0  0  0  0 |
+        | 0  0  2  0  0 |   
+
+  In this example, the first student starts out with just a learning resource, and no checks for understanding. In subsequent checkpoints, this student also responds to subpart 2 and 5, and gets the first wrong and the second correct.   
+
+* `starts`: defines each student's starting position on the `data` matrix. For the above matrix,  `starts` would be defined as: 
+
+        | 1  4 |
+
+* `lengths`: defines the number of check point for each student. For the above matrix, `lengths` would be defined as: 
+
+        | 3  2 |
+
+* `resources`: defines the sequential id of the resources at each checkpoint. Each position in the vector corresponds to the column in the `data` matrix. For the above matrix, the learning `resources` at each checkpoint would be structured as: 
+
+        | 1  2  1  1  3 |
+
+* `stateseqs`: this attribute is the true knowledge state for above data and should not be undefined before running the `xBKT` model. 
+
+
+The output of the model can will be stored in a `fitmodel` object, containing the following probabilities as attributes: 
+* `As`: the transition probability between the state of knowing and not knowing. Includes both `learns` and `forgets` probability. `As` has a different matrix for each resource.
+* `learns`: the probability of transitioning to the `know` state given `not know`.
+* `forgets`: the probability of transitioning to the `not know` state given `know`.
+* `prior`: the prior probability of knowing 
+The `fitmodel` also includes a number of emissions probability, which includes the following:
+* `guesses`: the probability of guessing correctly, given student `not know`.
+* `slips`: the probability of picking incorrect answer, given student `know`.
+
+
+## Running xBKT ##
+You can work in the repository root directory or add it to your path with
+`addpath` (no need to use `genpath`, since everything is organized with
+namespaces).
+
+To start the EM algorithm, initiate a randomly generated `fitmodel`, with two potential options:
+1. `generate.random_model_uni`: generates a model from uniform distribution and sets the probability of forgetting to 0.
+2. `generate.random_model`: generates a model from dirichlet distribution and allows the probability of forgetting to vary. 
+
+For data observed during a short period of learning activity, and the  probability of forgetting is relatively low, the uniform model is recommended. The following example will initiate fitmodel using the uniform distribution: 
+
+         fitmodel = generate.random_model_uni(num_resources,num_subparts);
+
+Once the `fitmodel` is generated, the following function can be used to generate an updated `fitmodel` and `log_likelihoods`:
+
+        [fitmodel, log_likelihoods] = fit.EM_fit(fitmodel, data)
+
+If an error about missing `E_step` is returned, you may need to recompile (see [Installation and setup](#installation and setup#)). 
+
+## Example ##
+[TO UPDATE: Example Model]
+See the file `+test/hand_specified_model.m` for a fairly complete example,
+which you can run with `test.hand_specified_model`.
+
+Here's a simplified version:
+
+```matlab
+num_subparts = 4;
+truemodel = generate.random_model(num_subparts);
+
+data = generate.synthetic_data(truemodel,[200,150,500]);
+
+best_likelihood = -inf;
+for i=1:25
+    [fitmodel, log_likelihoods] = fit.EM_fit(generate.random_model(num_subparts),data);
+    if (log_likelihoods(end) > best_likelihood)
+        best_likelihood = log_likelihoods(end);
+        best_model = fitmodel;
+    end
+end
+
+disp('these two should look similar');
+truemodel.A
+best_model.A
+```
