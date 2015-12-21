@@ -133,9 +133,9 @@ namespaces).
 
 To start the EM algorithm, initiate a randomly generated `fitmodel`, with two potential options:
 
-1. `generate.random_model_uni`: generates a model from uniform distribution and sets the probability of forgetting to 0.
+1. `generate.random_model_uni`: generates a model from uniform distribution and sets the `forgets` probability to 0.
 
-2. `generate.random_model`: generates a model from dirichlet distribution and allows the probability of forgetting to vary. 
+2. `generate.random_model`: generates a model from dirichlet distribution and allows the `forgets` probability to vary. 
 
 For data observed during a short period of learning activity with a low probability of forgetting, the uniform model is recommended. The following example will initiate fitmodel using the uniform distribution: 
 
