@@ -132,7 +132,9 @@ You can work in the repository root directory or add it to your path with
 namespaces).
 
 To start the EM algorithm, initiate a randomly generated `fitmodel`, with two potential options:
+
 1. `generate.random_model_uni`: generates a model from uniform distribution and sets the probability of forgetting to 0.
+
 2. `generate.random_model`: generates a model from dirichlet distribution and allows the probability of forgetting to vary. 
 
 For data observed during a short period of learning activity with a low probability of forgetting, the uniform model is recommended. The following example will initiate fitmodel using the uniform distribution: 
@@ -143,7 +145,7 @@ Once the `fitmodel` is generated, the following function can be used to generate
 
         [fitmodel, log_likelihoods] = fit.EM_fit(fitmodel, data)
 
-If an error about missing `E_step` is returned, you may need to recompile (see [Installation and setup](#install)). 
+If there is an error `E_step`, you may need to recompile (see [Installation and setup](#install)). 
 
 ## Example ##
 [TODO: Update Example Model]
